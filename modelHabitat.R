@@ -40,11 +40,12 @@ StockGroup <- datasheet(myScenario, "stsimsf_StockGroup")
 StockTypeGroupMembership <- datasheet(myScenario, "stsimsf_StockTypeGroupMembership")
 
 # stsimNetweb
+SpeciesID <- datasheet(myScenario, "stsimNestweb_Species", includeKey = TRUE) %>% 
+  pull(SpeciesID, name = Name)
 OutputOptions <- datasheet(myScenario, "stsimNestweb_OutputOptions")
 OutputOptionsSpatial <- datasheet(myScenario, "stsimNestweb_OutputOptionsSpatial")
 HabitatModel <- datasheet(myScenario, "stsimNestweb_HabitatModel")
-SpeciesID <- datasheet(myScenario, "stsimNestweb_Species", includeKey = TRUE) %>% 
-  pull(SpeciesID, name = Name)
+OutputHabitatAmount <- data.frame()
 
 ## Setup Parameters ----
 # Iterations 
@@ -72,6 +73,13 @@ species <- HabitatModel$Name
 
 # Square meter to hectare conversion
 scaleFactor <- 0.0001
+
+## Load spatial data ----
+StrataData <- data.frame(
+  StratumID = rast(InitialConditionsSpatial$StratumFileName)[] %>% as.vector(),
+  SecondaryStratumID = rast(InitialConditionsSpatial$SecondaryStratumFileName)[] %>% as.vector())
+
+
 
 # Load template raster
 templateRaster <- rast(InitialConditionsSpatial$StratumFileName)
@@ -102,6 +110,10 @@ tempDir <- ssimEnvironment()$TempDirectory
 ## Handle empty values ----
 
 ## Function definitions ----
+# Define function to facilitate recoding a vector using a look-up table
+lookup <- function(x, old, new){
+  dplyr::recode(x, !!!set_names(new, old))
+}
 
 # Main Code Here zzz ----
 progressBar(type = "message", message = "Running main code...")
@@ -176,17 +188,47 @@ for(iteration in iterations){
       habitatSuitabilityDf$pred <- predict(model, newdata = habitatSuitabilityDf, type = "response", allow.new.levels = TRUE)
       
       # Output raster
-      outputFilename <- file.path(tempDir, str_c("hs.sp_", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
-        normalizePath(mustWork = FALSE)
+      if(timestep %in% timestepsSpatial) {
+        outputFilename <- file.path(tempDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
+          normalizePath(mustWork = FALSE)
+        
+        rast(templateRaster, vals = habitatSuitabilityDf$pred) %>% 
+          writeRaster(outputFilename, overwrite = TRUE)}
       
-      rast(templateRaster, vals = habitatSuitabilityDf$pred) %>% 
-        writeRaster(outputFilename, overwrite = TRUE)
+      # Calculate tabular output and append to 
+      if(timestep %in% timestepsTabular) {
+        OutputHabitatAmount <- bind_rows(
+          OutputHabitatAmount, 
+          habitatSuitabilityDf %>% 
+            dplyr::select(Amount = pred) %>% 
+            bind_cols(StrataData) %>% 
+            filter(!is.na(Amount)) %>% 
+            group_by(StratumID, SecondaryStratumID) %>% # zzz: add Site
+            summarise(Amount = mean(Amount)) %>%
+            mutate(
+              Timestep = timestep,
+              Iteration = iteration,
+              Species = aSpecies
+            ))}
       
     }
   }
 }
 
-OutputSpatialHabitat <- tibble(FileName = list.files(tempDir, ".tif", full.names = TRUE)) #%>% 
+# Save spatial outputs
+OutputSpatialHabitat <- tibble(FileName = list.files(tempDir, ".tif", full.names = TRUE) %>% normalizePath()) %>%
+  mutate(
+    temp = basename(FileName),
+    Iteration = temp %>% str_extract("it\\d+") %>% str_replace("it", "") %>% as.numeric(),
+    Timestep = temp %>% str_extract("ts\\d+") %>% str_replace("ts", "") %>% as.numeric(),
+    Species = temp %>% str_extract("sp\\d+") %>% str_replace("sp", "") %>% as.numeric(),
+    Species = lookup(Species, SpeciesID, names(SpeciesID))) %>% 
+  dplyr::select(-temp) %>% 
+  as.data.frame()
+
+saveDatasheet(myScenario, OutputSpatialHabitat, "stsimNestweb_OutputSpatialHabitat")
+saveDatasheet(myScenario, OutputHabitatAmount, "stsimNestweb_OutputHabitatAmount") # zzz: Recode strataID and siteIds to names
+
 
 # Clean up ----
 
