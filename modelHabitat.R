@@ -1,7 +1,7 @@
 # zzz:
 # Load spatial data to disambiguating habitat suitability (strata, site)
 # Create a datasheet for Site
-# Build habitat suitability maps
+# Fix project-scoep site datasheet
 
 # Set environment variable TZ when running on AWS EC2 instance
 Sys.setenv(TZ='UTC')
@@ -20,6 +20,11 @@ suppressPackageStartupMessages(library(unmarked))
 # Setup ----
 progressBar(type = "message", message = "Preparing inputs...")
 
+## Function definitions ----
+# Define function to facilitate recoding a vector using a look-up table
+lookup <- function(x, old, new){
+  dplyr::recode(x, !!!set_names(new, old))
+}
 
 ## Connect to SyncroSim ----
 myScenario <- scenario()
@@ -28,7 +33,7 @@ myScenario <- scenario()
 # stsim
 RunControl <- datasheet(myScenario, "stsim_RunControl")
 Stratum <- datasheet(myScenario, "stsim_Stratum")
-SecondaryStrtaum <- datasheet(myScenario, "stsim_SecondaryStratum")
+SecondaryStratum <- datasheet(myScenario, "stsim_SecondaryStratum")
 StateClass <- datasheet(myScenario, "stsim_StateClass")
 InitialConditionsSpatial <- datasheet(myScenario, "stsim_InitialConditionsSpatial")
 OutputSpatialState <- datasheet(myScenario, "stsim_OutputSpatialState")
@@ -40,12 +45,15 @@ StockGroup <- datasheet(myScenario, "stsimsf_StockGroup")
 StockTypeGroupMembership <- datasheet(myScenario, "stsimsf_StockTypeGroupMembership")
 
 # stsimNetweb
+SiteType <- datasheet(myScenario, "stsimNestweb_SiteType")
 SpeciesID <- datasheet(myScenario, "stsimNestweb_Species", includeKey = TRUE) %>% 
   pull(SpeciesID, name = Name)
+Site <- datasheet(myScenario, "stsimNestweb_SiteValue")
 OutputOptions <- datasheet(myScenario, "stsimNestweb_OutputOptions")
 OutputOptionsSpatial <- datasheet(myScenario, "stsimNestweb_OutputOptionsSpatial")
 HabitatModel <- datasheet(myScenario, "stsimNestweb_HabitatModel")
 OutputHabitatAmount <- data.frame()
+
 
 ## Setup Parameters ----
 # Iterations 
@@ -77,9 +85,8 @@ scaleFactor <- 0.0001
 ## Load spatial data ----
 StrataData <- data.frame(
   StratumID = rast(InitialConditionsSpatial$StratumFileName)[] %>% as.vector(),
-  SecondaryStratumID = rast(InitialConditionsSpatial$SecondaryStratumFileName)[] %>% as.vector())
-
-
+  SecondaryStratumID = rast(InitialConditionsSpatial$SecondaryStratumFileName)[] %>% as.vector(),
+  Site = rast(Site$FileName)[] %>% as.vector() %>% lookup(SiteType$ID, SiteType$Name))
 
 # Load template raster
 templateRaster <- rast(InitialConditionsSpatial$StratumFileName)
@@ -109,14 +116,9 @@ tempDir <- ssimEnvironment()$TempDirectory
 
 ## Handle empty values ----
 
-## Function definitions ----
-# Define function to facilitate recoding a vector using a look-up table
-lookup <- function(x, old, new){
-  dplyr::recode(x, !!!set_names(new, old))
-}
-
-# Main Code Here zzz ----
+# Main Code Here ----
 progressBar(type = "message", message = "Running main code...")
+progressBar(type = "begin", totalSteps = length(iterations) * length(timesteps) * length(species))
 
 # Build parameter sampling table
 modelNames <- map_chr(HabitatModel$ModelFileName, load)
@@ -178,9 +180,8 @@ for(iteration in iterations){
                                        Num_2BI = 0,
                                        Mean_decay = 0,
                                        dist_to_cut = 0,
-                                       # zzz: how to handle categorical variables??
                                        cut_harvest0 = "N",
-                                       Site = "YY")
+                                       Site = StrataData$Site)
     
     for(aSpecies in species){
       # Predict habitat suitability
@@ -203,14 +204,16 @@ for(iteration in iterations){
             dplyr::select(Amount = pred) %>% 
             bind_cols(StrataData) %>% 
             filter(!is.na(Amount)) %>% 
-            group_by(StratumID, SecondaryStratumID) %>% # zzz: add Site
-            summarise(Amount = mean(Amount)) %>%
+            group_by(StratumID, SecondaryStratumID, Site) %>%
+            summarise(Amount = mean(Amount), .groups = "drop") %>%
             mutate(
               Timestep = timestep,
               Iteration = iteration,
               Species = aSpecies
             ))}
       
+      # Increment progress bar
+      progressBar()
     }
   }
 }
@@ -227,7 +230,12 @@ OutputSpatialHabitat <- tibble(FileName = list.files(tempDir, ".tif", full.names
   as.data.frame()
 
 saveDatasheet(myScenario, OutputSpatialHabitat, "stsimNestweb_OutputSpatialHabitat")
-saveDatasheet(myScenario, OutputHabitatAmount, "stsimNestweb_OutputHabitatAmount") # zzz: Recode strataID and siteIds to names
+
+OutputHabitatAmount <- OutputHabitatAmount %>% 
+  mutate(
+    StratumID = StratumID %>% lookup(Stratum$ID, Stratum$Name),
+    SecondaryStratumID = SecondaryStratumID %>% lookup(SecondaryStratum$ID, SecondaryStratum$Name))
+saveDatasheet(myScenario, OutputHabitatAmount, "stsimNestweb_OutputHabitatAmount")
 
 
 # Clean up ----

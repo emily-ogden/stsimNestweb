@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package name="stsimNestweb" displayName="stsimNestweb" isAddOn="True" extendsPackage="stsim" version="1.0.0">
+  <transformers>
+    <transformer name="modelHabitat" isPrimary="True" isPipelineBased="True" transformerSpecificOutput="False" isRunnable="True" programName="RScript" programArguments="modelHabitat.R" condaEnv="rsyncrosim.yml">
+      <pipeline>
+        <datafeed name="OutputHabitatAmount" type="Output" />
+        <datafeed name="OutputSpatialHabitat" type="Output" />
+        <datafeed name="OutputOptionsSpatial" type="Input" />
+        <datafeed name="OutputOptions" type="Input" />
+        <datafeed name="HabitatModel" type="Input" />
+        <datafeed name="Species" type="Input" />
+        <datafeed name="SiteType" type="Input" />
+        <datafeed name="stsim_RunControl" type="Input" />
+        <datafeed name="stsim_Stratum" type="Input" />
+        <datafeed name="stsim_SecondaryStratum" type="Input" />
+        <datafeed name="stsim_StateClass" type="Input" />
+        <datafeed name="stsim_InitialConditionsSpatial" type="Input" />
+        <datafeed name="stsim_OutputSpatialState" type="Input" />
+        <datafeed name="stsimsf_OutputSpatialStockGroup" type="Input" />
+        <datafeed name="stsimsf_StockType" type="Input" />
+        <datafeed name="stsimsf_StockGroup" type="Input" />
+        <datafeed name="stsimsf_StockGroupMembership" type="Input" />
+        <datafeed name="SiteValue" type="Input" />
+      </pipeline>
+      <datafeeds>
+        <datafeed name="SiteType" displayName="Sites" dataScope="Project">
+          <datasheets>
+            <datasheet name="SiteType" displayName="Sites" valueMember="SiteTypeID" displayMember="Name">
+              <columns>
+                <column name="SiteTypeID" dataType="Integer" isPrimary="True" />
+                <column name="ProjectID" dataType="Integer" />
+                <column name="Name" dataType="String" />
+                <column name="ID" displayName="ID" dataType="Integer" validationType="WholeNumber" validationCondition="None" />
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="Species" displayName="Species" dataScope="Project">
+          <datasheets>
+            <datasheet name="Species" displayName="Species" valueMember="SpeciesID" displayMember="Name">
+              <columns>
+                <column name="SpeciesID" dataType="Integer" isPrimary="True" />
+                <column name="ProjectID" dataType="Integer" />
+                <column name="Name" dataType="String" />
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="HabitatModel" displayName="Habitat Models" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="HabitatModel" displayName="Habitat Models">
+              <columns>
+                <column name="HabitatModelID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
+                <column name="Name" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
+                <column name="ModelFileName" displayName="Habitat Model" dataType="String" isExternalFile="True" />
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="OutputOptions" displayName="Output Options" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="OutputOptions" displayName="Output Options" isSingleRow="True">
+              <columns>
+                <column name="OutputOptionsID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" />
+                <column name="SummaryOutputHA" displayName="Output tabular data" dataType="Boolean" />
+                <column name="SummaryOutputHATimesteps" displayName="Output every" dataType="Integer" validationType="WholeNumber" validationCondition="None" />
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="OutputOptionsSpatial" displayName="Output Options Spatial" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="OutputOptionsSpatial" displayName="Output Options Spatial" isSingleRow="True">
+              <columns>
+                <column name="OutputOptionsSpatialID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" />
+                <column name="RasterOutputHA" displayName="Output spatial data" dataType="Boolean" />
+                <column name="RasterOutputHATimesteps" displayName="Output every" dataType="Integer" validationType="WholeNumber" validationCondition="None" />
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="OutputSpatialHabitat" displayName="Spatial Habitat" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="OutputSpatialHabitat" displayName="Spatial Habitat">
+              <columns>
+                <column name="OutputSpatialHabitatID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
+                <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
+                <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
+                <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
+                <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band"/>
+                <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="OutputHabitatAmount" displayName="Output Habitat Amount" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="OutputHabitatAmount" displayName="Output Habitat Amount">
+              <columns>
+                <column name="OutputHabitatAmountID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
+                <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
+                <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
+                <column name="Amount" displayName="Amount" dataType="Double" validationType="Decimal" validationCondition="None" />
+                <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
+                <column name="Site" displayName="Site" dataType="Integer" validationType="Datasheet" formula1="SiteType" />
+                <column name="SecondaryStratumID" displayName="Secondary Stratum" dataType="String" />
+                <column name="StratumID" displayName="Primary Stratum" dataType="String" />
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="SiteValue" displayName="Sites" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="SiteValue" displayName="Sites" isSingleRow="True">
+              <columns>
+                <column name="SiteValueID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" />
+                <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band"/>
+                <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+      </datafeeds>
+    </transformer>
+  </transformers>
+  <layouts>
+    <layout name="coreforms_ProjectDatafeeds">
+      <item name="SiteType" />
+      <item name="Species" />
+    </layout>
+    <layout name="coreforms_ScenarioDatafeeds">
+      <item name="HabitatModel" showIf="inPipeline"/>
+      <item name="OutputOptions" showIf="inPipeline"/>
+      <item name="OutputOptionsSpatial" showIf="inPipeline"/>
+      <item name="OutputSpatialHabitat" showIf="inPipeline"/>
+      <item name="OutputHabitatAmount" showIf="inPipeline"/>
+      <item name="SiteValue" showIf="inPipeline"/>
+    </layout>
+    <layout name="coreforms_ResultTransformers">
+      <item name="corestime_ChartTransformer" />
+      <item name="corestime_MapTransformer" />
+    </layout>
+    <layout name="corestimeforms_Charts">
+      <group name="OutputHabitatAmount" displayName="Output Habitat Amount">
+        <item name="OutputHabitatAmount_Amount" displayName="Amount" dataSheet="OutputHabitatAmount" column="Amount" filter="Species|Site|SecondaryStratumID|StratumID" />
+      </group>
+    </layout>
+    <layout name="corestimeforms_Maps">
+      <group name="OutputSpatialHabitat" displayName="Spatial Habitat">
+        <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" />
+      </group>
+      <group name="SiteValue" displayName="Sites">
+        <item name="SiteValue_FileName" displayName="Site Raster" dataSheet="SiteValue" column="FileName" />
+      </group>
+    </layout>
+  </layouts>
+  <views />
+</package>
