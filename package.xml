@@ -91,7 +91,7 @@
                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
                 <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
-                <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band"/>
+                <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
               </columns>
             </datasheet>
@@ -153,7 +153,7 @@
     </layout>
     <layout name="corestimeforms_Maps">
       <group name="OutputSpatialHabitat" displayName="Spatial Habitat">
-        <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" />
+        <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" filter="Species"/>
       </group>
       <group name="SiteValue" displayName="Sites">
         <item name="SiteValue_FileName" displayName="Site Raster" dataSheet="SiteValue" column="FileName" />
