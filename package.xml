@@ -120,6 +120,8 @@
               <columns>
                 <column name="SiteValueID" dataType="Integer" isPrimary="True" />
                 <column name="ScenarioID" dataType="Integer" />
+                <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" isVisible="False"/>
+                <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" isVisible="False"/>
                 <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band"/>
                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
               </columns>

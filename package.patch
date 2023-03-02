@@ -14,16 +14,16 @@
 ---
 >                 <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-99c110
-<                 <column name="Site" displayName="Site" dataType="Integer" validationType="Datasheet" formula1="Site" />
----
->                 <column name="Site" displayName="Site" dataType="Integer" validationType="Datasheet" formula1="SiteType" />
-112c123,124
+112,114c123,126
+<                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
+<                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
 <                 <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
 ---
+>                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" isVisible="False"/>
+>                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" isVisible="False"/>
 >                 <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-126,131c138,143
+128,133c140,145
 <       <item name="HabitatModel" />
 <       <item name="OutputOptions" />
 <       <item name="OutputOptionsSpatial" />
@@ -37,7 +37,7 @@
 >       <item name="OutputSpatialHabitat" showIf="inPipeline"/>
 >       <item name="OutputHabitatAmount" showIf="inPipeline"/>
 >       <item name="SiteValue" showIf="inPipeline"/>
-144c156
+146c158
 <         <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" />
 ---
 >         <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" filter="Species"/>

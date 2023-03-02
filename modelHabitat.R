@@ -112,6 +112,12 @@ totalArea <- cellCount * cellArea
 # Create temp folder, ensure it is empty
 tempDir <- ssimEnvironment()$TempDirectory
 
+spatialOutputDir <- file.path(tempDir, "SpatialOutputs") %>% normalizePath(mustWork = FALSE)
+
+unlink(spatialOutputDir, recursive = TRUE, force = TRUE)
+
+dir.create(spatialOutputDir)
+
 # Generate filenames for potential outputs
 
 ## Handle empty values ----
@@ -187,10 +193,11 @@ for(iteration in iterations){
       # Predict habitat suitability
       model <- models[[aSpecies]]
       habitatSuitabilityDf$pred <- predict(model, newdata = habitatSuitabilityDf, type = "response", allow.new.levels = TRUE)
+      habitatSuitabilityDf$pred[is.nan(habitatSuitabilityDf$pred)] <- 0
       
       # Output raster
       if(timestep %in% timestepsSpatial) {
-        outputFilename <- file.path(tempDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
+        outputFilename <- file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
           normalizePath(mustWork = FALSE)
         
         rast(templateRaster, vals = habitatSuitabilityDf$pred) %>% 
@@ -219,7 +226,7 @@ for(iteration in iterations){
 }
 
 # Save spatial outputs
-OutputSpatialHabitat <- tibble(FileName = list.files(tempDir, ".tif", full.names = TRUE) %>% normalizePath()) %>%
+OutputSpatialHabitat <- tibble(FileName = list.files(spatialOutputDir, ".tif", full.names = TRUE) %>% normalizePath()) %>%
   mutate(
     temp = basename(FileName),
     Iteration = temp %>% str_extract("it\\d+") %>% str_replace("it", "") %>% as.numeric(),
