@@ -27,6 +27,7 @@
       <pipeline>
         <datafeed name="OutputSpatialHabitat" type="Input" />
         <datafeed name="OutputOptionsSpatial" type="Input" />
+        <datafeed name="Species" type="Input" />
         <datafeed name="OutputSpatialAverageHabitat" type="Output" />
       </pipeline>
     </transformer>
