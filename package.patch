@@ -9,12 +9,12 @@
 >         <datafeed name="stsimsf_StockType" type="Input" />
 >         <datafeed name="stsimsf_StockGroup" type="Input" />
 >         <datafeed name="stsimsf_StockGroupMembership" type="Input" />
-84c94,95
+98c108,109
 <                 <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
 ---
 >                 <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-112,114c123,126
+126,128c137,140
 <                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
 <                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
 <                 <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
@@ -23,13 +23,20 @@
 >                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" isVisible="False"/>
 >                 <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-128,133c140,145
+141c153
+<                 <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
+---
+>                 <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
+142a155
+>                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
+156,162c169,175
 <       <item name="HabitatModel" />
 <       <item name="OutputOptions" />
 <       <item name="OutputOptionsSpatial" />
 <       <item name="OutputSpatialHabitat" />
 <       <item name="OutputHabitatAmount" />
 <       <item name="SiteValue" />
+<       <item name="OutputSpatialAverageHabitat" />
 ---
 >       <item name="HabitatModel" showIf="inPipeline"/>
 >       <item name="OutputOptions" showIf="inPipeline"/>
@@ -37,7 +44,12 @@
 >       <item name="OutputSpatialHabitat" showIf="inPipeline"/>
 >       <item name="OutputHabitatAmount" showIf="inPipeline"/>
 >       <item name="SiteValue" showIf="inPipeline"/>
-146c158
+>       <item name="OutputSpatialAverageHabitat" showIf="inPipeline"/>
+175c188
 <         <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" />
 ---
 >         <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" filter="Species"/>
+181c194
+<         <item name="OutputSpatialAverageHabitat_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialAverageHabitat" column="FileName" />
+---
+>         <item name="OutputSpatialAverageHabitat_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialAverageHabitat" column="FileName" filter="Species"/>
