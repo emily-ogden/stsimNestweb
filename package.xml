@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package name="stsimNestweb" displayName="stsimNestweb" isAddOn="True" extendsPackage="stsim" version="1.0.0">
   <transformers>
-    <transformer name="modelHabitat" transformerSpecificOutput="False" isRunnable="True" programName="RScript" programArguments="modelHabitat.R" condaEnv="rsyncrosim.yml">
+    <transformer name="modelHabitat" displayName="Model Habitat" transformerSpecificOutput="False" isRunnable="True" programName="RScript" programArguments="modelHabitat.R" runContext="AllowRemote" condaEnv="rsyncrosim.yml">
       <pipeline>
         <datafeed name="OutputHabitatAmount" type="Output" />
         <datafeed name="OutputSpatialHabitat" type="Output" />
@@ -23,10 +23,10 @@
         <datafeed name="SiteValue" type="Input" />
       </pipeline>
     </transformer>
-    <transformer name="summarizeHabitat" transformerSpecificOutput="False" isRunnable="True" programName="RScript" programArguments="summarizeHabitat.R" condaEnv="rsyncrosim.yml">
+    <transformer name="summarizeHabitat" displayName="Summarize Habitat" transformerSpecificOutput="False" isRunnable="True" programName="RScript" programArguments="summarizeHabitat.R" runContext="LocalOnly" condaEnv="rsyncrosim.yml">
       <pipeline>
-        <datafeed name="OutputOptionsSpatial" type="Input" />
         <datafeed name="OutputSpatialHabitat" type="Input" />
+        <datafeed name="OutputOptionsSpatial" type="Input" />
         <datafeed name="OutputSpatialAverageHabitat" type="Output" />
       </pipeline>
     </transformer>
@@ -150,10 +150,10 @@
                 <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
-                <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
                 <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
-                <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
+                <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
               </columns>
+                <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
             </datasheet>
           </datasheets>
         </datafeed>
