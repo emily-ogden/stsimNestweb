@@ -193,7 +193,7 @@ for(iteration in iterations){
       # Predict habitat suitability
       model <- models[[aSpecies]]
       habitatSuitabilityDf$pred <- predict(model, newdata = habitatSuitabilityDf, type = "response", allow.new.levels = TRUE)
-      habitatSuitabilityDf$pred[is.nan(habitatSuitabilityDf$pred)] <- 0
+      habitatSuitabilityDf$pred[is.nan(habitatSuitabilityDf$pred)] <- NA
       
       # Output raster
       if(timestep %in% timestepsSpatial) {
@@ -201,7 +201,9 @@ for(iteration in iterations){
           normalizePath(mustWork = FALSE)
         
         rast(templateRaster, vals = habitatSuitabilityDf$pred) %>% 
-          writeRaster(outputFilename, overwrite = TRUE)}
+          writeRaster(outputFilename, 
+                      overwrite = TRUE,
+                      NAflag = -9999)}
       
       # Calculate tabular output and append to 
       if(timestep %in% timestepsTabular) {
