@@ -23,6 +23,7 @@
         <datafeed name="stsimsf_StockGroupMembership" type="Input" />
         <datafeed name="SiteValue" type="Input" />
         <datafeed name="InvalidHabitat" type="Input" />
+        <datafeed name="OutputSpatialHabitatChange" type="Output" />
       </pipeline>
     </transformer>
     <transformer name="summarizeHabitat" displayName="Summarize Habitat" transformerSpecificOutput="False" isRunnable="True" programName="RScript" programArguments="summarizeHabitat.R" runContext="LocalOnly" condaEnv="rsyncrosim.yml">
@@ -99,9 +100,9 @@
             </datasheet>
           </datasheets>
         </datafeed>
-        <datafeed name="OutputSpatialHabitat" displayName="Spatial Habitat" dataScope="Scenario">
+        <datafeed name="OutputSpatialHabitat" displayName="Habitat" dataScope="Scenario">
           <datasheets>
-            <datasheet name="OutputSpatialHabitat" displayName="Spatial Habitat">
+            <datasheet name="OutputSpatialHabitat" displayName="Habitat">
               <columns>
                 <column name="OutputSpatialHabitatID" dataType="Integer" isPrimary="True" />
                 <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
@@ -145,9 +146,9 @@
             </datasheet>
           </datasheets>
         </datafeed>
-        <datafeed name="OutputSpatialAverageHabitat" displayName="Average Spatial Habitat" dataScope="Scenario">
+        <datafeed name="OutputSpatialAverageHabitat" displayName="Average Habitat" dataScope="Scenario">
           <datasheets>
-            <datasheet name="OutputSpatialAverageHabitat" displayName="Average Spatial Habitat">
+            <datasheet name="OutputSpatialAverageHabitat" displayName="Average Habitat">
               <columns>
                 <column name="OutputSpatialAverageHabitatID" dataType="Integer" isPrimary="True" />
                 <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
@@ -155,8 +156,8 @@
                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
                 <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
                 <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
-              </columns>
                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
+              </columns>
             </datasheet>
           </datasheets>
         </datafeed>
@@ -169,6 +170,21 @@
                 <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
                 <column name="StateClassID" displayName="State Class" dataType="Integer" validationType="Datasheet" formula1="stsim_StateClass" />
                 <column name="StratumID" displayName="Primary Startum" dataType="Integer" validationType="Datasheet" formula1="stsim_Stratum" />
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="OutputSpatialHabitatChange" displayName="Habitat Change" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="OutputSpatialHabitatChange" displayName="Habitat Change">
+              <columns>
+                <column name="OutputSpatialHabitatChangeID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
+                <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
+                <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
+                <column name="FileName" displayName="Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
+                <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
+                <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
               </columns>
             </datasheet>
           </datasheets>
@@ -190,6 +206,7 @@
       <item name="SiteValue" showIf="inPipeline"/>
       <item name="OutputSpatialAverageHabitat" showIf="inPipeline"/>
       <item name="InvalidHabitat" showIf="inPipeline"/>
+      <item name="OutputSpatialHabitatChange" showIf="inPipeline"/>
     </layout>
     <layout name="coreforms_ResultTransformers">
       <item name="corestime_ChartTransformer" />
@@ -201,14 +218,17 @@
       </group>
     </layout>
     <layout name="corestimeforms_Maps">
-      <group name="OutputSpatialHabitat" displayName="Spatial Habitat">
+      <group name="OutputSpatialHabitat" displayName="Habitat">
         <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" filter="Species"/>
       </group>
       <group name="SiteValue" displayName="Sites">
         <item name="SiteValue_FileName" displayName="Site Raster" dataSheet="SiteValue" column="FileName" />
       </group>
-      <group name="OutputSpatialAverageHabitat" displayName="Average Spatial Habitat">
+      <group name="OutputSpatialAverageHabitat" displayName="Average Habitat">
         <item name="OutputSpatialAverageHabitat_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialAverageHabitat" column="FileName" filter="Species"/>
+      </group>
+      <group name="OutputSpatialHabitatChange" displayName="Habitat Change">
+        <item name="OutputSpatialHabitatChange_FileName" displayName="Habitat Probability Change" dataSheet="OutputSpatialHabitatChange" column="FileName" filter="Species"/>
       </group>
     </layout>
   </layouts>

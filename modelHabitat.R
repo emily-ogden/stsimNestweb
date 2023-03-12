@@ -75,9 +75,9 @@ timesteps <- c(timestepsTabular, timestepsSpatial) %>%
 species <- HabitatModel$Name
 
 # Invalid Habitat
-invalidHabitatLookup <- InvalidHabitat %>% # zzz: expand InvalidHabitat to list all combinations of cells that should be set to 0 habitat 
-  expand(Species, StateClassID, StratumID) %>% 
-  filter(!is.na()) # zzz: remove na values?
+# invalidHabitatLookup <- InvalidHabitat %>% # zzz: expand InvalidHabitat to list all combinations of cells that should be set to 0 habitat 
+#   expand(Species, StateClassID, StratumID) %>% 
+#   filter(!is.na()) # zzz: remove na values?
 
 #invalidHabitatReclass <- invalidHabitatLookup # zzz: construct 3-dim reclass matrix that will create the mask raster
                                               # Put this in the species loop?
@@ -206,7 +206,7 @@ for(iteration in iterations){
                                        Num_2BI = 0,
                                        Mean_decay = 0,
                                        dist_to_cut = 0,
-                                       cut_harvest0 = cut,
+                                       cut_harvest0 = "N", # Change this to 'cut'
                                        Site = StrataData$Site)
     
     for(aSpecies in species){
@@ -223,7 +223,7 @@ for(iteration in iterations){
       #                              4: In X %*% fixef(object) : non-conformable arguments
       habitatSuitabilityDf$pred[is.nan(habitatSuitabilityDf$pred)] <- NA
       
-      # Output raster
+      # Output habitat raster
       if(timestep %in% timestepsSpatial) {
         outputFilename <- file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
           normalizePath(mustWork = FALSE)
@@ -231,7 +231,19 @@ for(iteration in iterations){
         rast(templateRaster, vals = habitatSuitabilityDf$pred) %>% 
           writeRaster(outputFilename, 
                       overwrite = TRUE,
-                      NAflag = -9999)}
+                      NAflag = -9999)
+        
+        # Output habitat change raster
+        if(timestep != min(timestepsSpatial)){
+          outputFilename = file.path(spatialOutputDir, str_c("hsc.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
+            normalizePath(mustWork = FALSE)
+          
+          rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif"))) -                  # Current habitat 
+           rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", min(timestepsSpatial), ".tif"))) %>%  # Initial habitat
+            writeRaster(outputFilename, 
+                        overwrite = TRUE,
+                        NAflag = -9999)
+        }}
       
       # Calculate tabular output and append to 
       if(timestep %in% timestepsTabular) {
@@ -256,7 +268,7 @@ for(iteration in iterations){
 }
 
 # Save spatial outputs
-OutputSpatialHabitat <- tibble(FileName = list.files(spatialOutputDir, ".tif", full.names = TRUE) %>% normalizePath()) %>%
+OutputSpatialHabitat <- tibble(FileName = list.files(spatialOutputDir, "hs\\..+tif", full.names = TRUE) %>% normalizePath()) %>%
   mutate(
     temp = basename(FileName),
     Iteration = temp %>% str_extract("it\\d+") %>% str_replace("it", "") %>% as.numeric(),
@@ -268,6 +280,19 @@ OutputSpatialHabitat <- tibble(FileName = list.files(spatialOutputDir, ".tif", f
 
 saveDatasheet(myScenario, OutputSpatialHabitat, "stsimNestweb_OutputSpatialHabitat")
 
+OutputSpatialHabitatChange <- tibble(FileName = list.files(spatialOutputDir, "hsc\\..+tif", full.names = TRUE) %>% normalizePath()) %>%
+  mutate(
+    temp = basename(FileName),
+    Iteration = temp %>% str_extract("it\\d+") %>% str_replace("it", "") %>% as.numeric(),
+    Timestep = temp %>% str_extract("ts\\d+") %>% str_replace("ts", "") %>% as.numeric(),
+    Species = temp %>% str_extract("sp\\d+") %>% str_replace("sp", "") %>% as.numeric(),
+    Species = lookup(Species, SpeciesID, names(SpeciesID))) %>% 
+  dplyr::select(-temp) %>% 
+  as.data.frame()
+
+saveDatasheet(myScenario, OutputSpatialHabitatChange, "stsimNestweb_OutputSpatialHabitatChange")
+
+# Save tabular output
 OutputHabitatAmount <- OutputHabitatAmount %>% 
   mutate(
     StratumID = StratumID %>% lookup(Stratum$ID, Stratum$Name),
