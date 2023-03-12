@@ -1,8 +1,3 @@
-# zzz:
-# Load spatial data to disambiguating habitat suitability (strata, site)
-# Create a datasheet for Site
-# Fix project-scoep site datasheet
-
 # Set environment variable TZ when running on AWS EC2 instance
 Sys.setenv(TZ='UTC')
 
@@ -52,8 +47,8 @@ Site <- datasheet(myScenario, "stsimNestweb_SiteValue")
 OutputOptions <- datasheet(myScenario, "stsimNestweb_OutputOptions")
 OutputOptionsSpatial <- datasheet(myScenario, "stsimNestweb_OutputOptionsSpatial")
 HabitatModel <- datasheet(myScenario, "stsimNestweb_HabitatModel")
+InvalidHabitat <- datasheet(myScenario, "stsimNestweb_InvalidHabitat")
 OutputHabitatAmount <- data.frame()
-
 
 ## Setup Parameters ----
 # Iterations 
@@ -79,15 +74,18 @@ timesteps <- c(timestepsTabular, timestepsSpatial) %>%
 # Species
 species <- HabitatModel$Name
 
+# Invalid Habitat
+invalidHabitatLookup <- InvalidHabitat %>% # zzz: expand InvalidHabitat to list all combinations of cells that should be set to 0 habitat 
+  expand(Species, StateClassID, StratumID) %>% 
+  filter(!is.na()) # zzz: remove na values?
+
+#invalidHabitatReclass <- invalidHabitatLookup # zzz: construct 3-dim reclass matrix that will create the mask raster
+                                              # Put this in the species loop?
+
 # Square meter to hectare conversion
 scaleFactor <- 0.0001
 
 ## Load spatial data ----
-StrataData <- data.frame(
-  StratumID = rast(InitialConditionsSpatial$StratumFileName)[] %>% as.vector(),
-  SecondaryStratumID = rast(InitialConditionsSpatial$SecondaryStratumFileName)[] %>% as.vector(),
-  Site = rast(Site$FileName)[] %>% as.vector() %>% lookup(SiteType$ID, SiteType$Name))
-
 # Load template raster
 templateRaster <- rast(InitialConditionsSpatial$StratumFileName)
 templateRaster[!is.na(templateRaster)] <- 1
@@ -97,15 +95,29 @@ names(templateRaster) <- "habitatSuitability"
 cellResolution <- templateRaster %>% res()
 
 # Pixel count
-cellCount <- freq(templateRaster, value = 1)$count
+#cellCount <- freq(templateRaster, value = 1)$count
 
 # Area of a pixel (square meter)
 cellArea <- cellResolution[1]^2
 
 # Total area
-totalArea <- cellCount * cellArea
+# totalArea <- cellCount * cellArea
 
+# Get Strata and site values
+StrataData <- data.frame(
+  StratumID = rast(InitialConditionsSpatial$StratumFileName)[] %>% as.vector(),
+  SecondaryStratumID = rast(InitialConditionsSpatial$SecondaryStratumFileName)[] %>% as.vector(),
+  Site = rast(Site$FileName)[] %>% as.vector() %>% lookup(SiteType$ID, SiteType$Name))
 
+# Get area of unique strata and site combinations
+Area <- StrataData %>% 
+  count(StratumID, SecondaryStratumID, Site) %>% 
+  rename(Area = n) %>% 
+  mutate(Area = Area * cellArea * scaleFactor)
+
+# Add Area to StrataData
+StrataData<- StrataData %>% 
+  left_join(Area)
 
 ## Setup files and folders ----
 
@@ -151,8 +163,6 @@ parameterTable <- imap_dfr(
       mean = means,
       sd = stdErrors)}) # Double check this assumption
 
-
-
 for(iteration in iterations){
   # Sample parameters
   parameterTable <- parameterTable %>% 
@@ -179,6 +189,16 @@ for(iteration in iterations){
       filterColumn = "StockGroupID",
       filterValue = "Diameter (cm) [Type]")
     
+    # Convert TST raster to binary Y/N cut data
+    cut <- datasheetRaster(
+      ssimObject = myScenario, 
+      datasheet = "stsim_OutputSpatialTST", 
+      iteration = iteration, 
+      timestep = timestep)[] %>% 
+      as.vector()
+    
+    cut <- case_when(cut <= 60 ~ "Y", cut > 60 ~ "N") %>% as.factor()
+    
     # Create dataframe of habitat suitability model inputs
     habitatSuitabilityDf <- data.frame(Perc_At = aspenCover[], 
                                        Median_DBH = diameter[],
@@ -186,13 +206,21 @@ for(iteration in iterations){
                                        Num_2BI = 0,
                                        Mean_decay = 0,
                                        dist_to_cut = 0,
-                                       cut_harvest0 = "N",
+                                       cut_harvest0 = cut,
                                        Site = StrataData$Site)
     
     for(aSpecies in species){
       # Predict habitat suitability
       model <- models[[aSpecies]]
       habitatSuitabilityDf$pred <- predict(model, newdata = habitatSuitabilityDf, type = "response", allow.new.levels = TRUE)
+      #zzz: 
+      # Error in predict.averaging(model, newdata = habitatSuitabilityDf, type = "response",  : 
+      #                              'predict' for models '1', '2', '5' and '7' caused errors
+      #                            In addition: Warning messages:
+      #                              1: In X %*% fixef(object) : non-conformable arguments
+      #                              2: In X %*% fixef(object) : non-conformable arguments
+      #                              3: In X %*% fixef(object) : non-conformable arguments
+      #                              4: In X %*% fixef(object) : non-conformable arguments
       habitatSuitabilityDf$pred[is.nan(habitatSuitabilityDf$pred)] <- NA
       
       # Output raster
@@ -213,8 +241,8 @@ for(iteration in iterations){
             dplyr::select(Amount = pred) %>% 
             bind_cols(StrataData) %>% 
             filter(!is.na(Amount)) %>% 
-            group_by(StratumID, SecondaryStratumID, Site) %>%
-            summarise(Amount = mean(Amount), .groups = "drop") %>%
+            group_by(StratumID, SecondaryStratumID, Site) %>% 
+            summarise(Amount = sum(Amount)/Area, .groups = "drop") %>% # zzz: Replace mean() with sum() and divide by area of grouping variables. 
             mutate(
               Timestep = timestep,
               Iteration = iteration,

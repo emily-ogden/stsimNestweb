@@ -16,6 +16,7 @@
         <datafeed name="stsim_StateClass" type="Input" />
         <datafeed name="stsim_InitialConditionsSpatial" type="Input" />
         <datafeed name="stsim_OutputSpatialState" type="Input" />
+        <datafeed name="stsim_OutputSpatialTST" type="Input" />
         <datafeed name="stsimsf_OutputSpatialStockGroup" type="Input" />
         <datafeed name="stsimsf_StockType" type="Input" />
         <datafeed name="stsimsf_StockGroup" type="Input" />
