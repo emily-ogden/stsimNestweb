@@ -75,19 +75,39 @@ timesteps <- c(timestepsTabular, timestepsSpatial) %>%
 species <- HabitatModel$Name
 
 # Invalid Habitat
-# invalidHabitatLookup <- InvalidHabitat %>% # zzz: expand InvalidHabitat to list all combinations of cells that should be set to 0 habitat 
-#   expand(Species, StateClassID, StratumID) %>% 
-#   filter(!is.na()) # zzz: remove na values?
-
-#invalidHabitatReclass <- invalidHabitatLookup # zzz: construct 3-dim reclass matrix that will create the mask raster
-                                              # Put this in the species loop?
+invalidHabitatLookup <- InvalidHabitat %>% 
+  left_join(tibble(
+    StratumID = c(Stratum$Name, rep(NA, length(Stratum$Name))),
+    StratumID2 = rep(Stratum$Name, 2)), 
+    multiple = "all") %>% 
+  left_join(tibble(
+    StateClassID = c(StateClass$Name, rep(NA, length(StateClass$Name))),
+    StateClassID2 = rep(StateClass$Name, 2)), 
+    multiple = "all") %>% 
+  left_join(tibble(
+    Species = c(names(SpeciesID), rep(NA, length(names(SpeciesID)))),
+    Species2 = rep(names(SpeciesID), 2)), 
+    multiple = "all") %>% 
+  dplyr::select("Species" = "Species2",
+                "StateClassID" = "StateClassID2",
+                "StratumID" = "StratumID2") %>% 
+  mutate(HabitatMask = 0) %>% 
+  bind_rows(anti_join(expand_grid(Species = names(SpeciesID), StateClassID = StateClass$Name, StratumID = Stratum$Name), .)) %>% 
+  unique() %>% 
+  mutate(StateClassID = StateClassID %>% lookup(StateClass$Name, StateClass$ID),
+         StratumID = StratumID %>% lookup(Stratum$Name, Stratum$ID),
+         StateClassStratumID = (StateClassID * 10) + StratumID) %>% 
+  select(Species, StateClassStratumID, HabitatMask)
 
 # Square meter to hectare conversion
 scaleFactor <- 0.0001
 
 ## Load spatial data ----
-# Load template raster
-templateRaster <- rast(InitialConditionsSpatial$StratumFileName)
+# Load Stratum raster
+stratum <- rast(InitialConditionsSpatial$StratumFileName)
+
+# Create a template raster
+templateRaster <- stratum
 templateRaster[!is.na(templateRaster)] <- 1
 names(templateRaster) <- "habitatSuitability"
 
@@ -110,14 +130,14 @@ StrataData <- data.frame(
   Site = rast(Site$FileName)[] %>% as.vector() %>% lookup(SiteType$ID, SiteType$Name))
 
 # Get area of unique strata and site combinations
-Area <- StrataData %>% 
-  count(StratumID, SecondaryStratumID, Site) %>% 
-  rename(Area = n) %>% 
-  mutate(Area = Area * cellArea * scaleFactor)
-
-# Add Area to StrataData
-StrataData<- StrataData %>% 
-  left_join(Area)
+# Area <- StrataData %>% 
+#   count(StratumID, SecondaryStratumID, Site) %>% 
+#   rename(Area = n) %>% 
+#   mutate(Area = Area * cellArea * scaleFactor)
+# 
+# # Add Area to StrataData
+# StrataData<- StrataData %>% 
+#   left_join(Area)
 
 ## Setup files and folders ----
 
@@ -169,6 +189,7 @@ for(iteration in iterations){
     mutate(value = map2_dbl(mean, sd, rnorm, n = 1))
   
   for(timestep in timesteps){
+    
     # Load aspen cover and diameter
     aspenCover <- datasheetRaster(
       ssimObject = myScenario, 
@@ -195,9 +216,8 @@ for(iteration in iterations){
       datasheet = "stsim_OutputSpatialTST", 
       iteration = iteration, 
       timestep = timestep)[] %>% 
-      as.vector()
-    
-    cut <- case_when(cut <= 60 ~ "Y", cut > 60 ~ "N") %>% as.factor()
+      as.vector() %>% 
+      {case_when(. <= 60 ~ "Y", TRUE ~ "N")}
     
     # Create dataframe of habitat suitability model inputs
     habitatSuitabilityDf <- data.frame(Perc_At = aspenCover[], 
@@ -206,21 +226,24 @@ for(iteration in iterations){
                                        Num_2BI = 0,
                                        Mean_decay = 0,
                                        dist_to_cut = 0,
-                                       cut_harvest0 = "N", # Change this to 'cut'
+                                       cut_harvest0 = cut, 
                                        Site = StrataData$Site)
+    
+    # Load state class raster
+    stateClass <- datasheetRaster(
+      ssimObject = myScenario, 
+      datasheet = "stsim_OutputSpatialState", 
+      iteration = iteration, 
+      timestep = timestep) %>% 
+      rast()
+    
+    # Combine state class and stratum raster to create habitat masking raster
+    stateClassStratum <- ((stateClass * 10) + stratum) %>% suppressWarnings()
     
     for(aSpecies in species){
       # Predict habitat suitability
       model <- models[[aSpecies]]
       habitatSuitabilityDf$pred <- predict(model, newdata = habitatSuitabilityDf, type = "response", allow.new.levels = TRUE)
-      #zzz: 
-      # Error in predict.averaging(model, newdata = habitatSuitabilityDf, type = "response",  : 
-      #                              'predict' for models '1', '2', '5' and '7' caused errors
-      #                            In addition: Warning messages:
-      #                              1: In X %*% fixef(object) : non-conformable arguments
-      #                              2: In X %*% fixef(object) : non-conformable arguments
-      #                              3: In X %*% fixef(object) : non-conformable arguments
-      #                              4: In X %*% fixef(object) : non-conformable arguments
       habitatSuitabilityDf$pred[is.nan(habitatSuitabilityDf$pred)] <- NA
       
       # Output habitat raster
@@ -228,8 +251,24 @@ for(iteration in iterations){
         outputFilename <- file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
           normalizePath(mustWork = FALSE)
         
-        rast(templateRaster, vals = habitatSuitabilityDf$pred) %>% 
-          writeRaster(outputFilename, 
+        # Create habitat mask
+        reclassMatrix <- invalidHabitatLookup %>% 
+          filter(Species == aSpecies) %>%  
+          select(-Species) %>% 
+          as.matrix()
+        
+        habitatMask <- stateClassStratum %>% 
+          classify(rcl = reclassMatrix)
+        
+       maskedHabitat <- data.frame(
+         invalidHabitat = habitatMask[] %>% as.vector(),
+         habitat = habitatSuitabilityDf$pred) %>% 
+         mutate(finalHabitat = case_when(!is.na(invalidHabitat) ~ invalidHabitat,
+                                         is.na(invalidHabitat) ~ habitat))
+        
+        # Create and write habitat raster
+        rast(templateRaster, vals = maskedHabitat$finalHabitat) %>% 
+          writeRaster(outputFilename,
                       overwrite = TRUE,
                       NAflag = -9999)
         
@@ -238,12 +277,17 @@ for(iteration in iterations){
           outputFilename = file.path(spatialOutputDir, str_c("hsc.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
             normalizePath(mustWork = FALSE)
           
-          rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif"))) -                  # Current habitat 
-           rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", min(timestepsSpatial), ".tif"))) %>%  # Initial habitat
+          habitatData <- data.frame(
+            ts2016 = rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", min(timestepsSpatial), ".tif")))[] %>% as.vector(),
+            tsCurrent = rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")))[] %>% as.vector()) %>% 
+            mutate(difference = tsCurrent - ts2016)
+          
+          rast(templateRaster, vals = habitatData$difference) %>% 
             writeRaster(outputFilename, 
                         overwrite = TRUE,
                         NAflag = -9999)
-        }}
+        }
+      }
       
       # Calculate tabular output and append to 
       if(timestep %in% timestepsTabular) {
@@ -254,7 +298,7 @@ for(iteration in iterations){
             bind_cols(StrataData) %>% 
             filter(!is.na(Amount)) %>% 
             group_by(StratumID, SecondaryStratumID, Site) %>% 
-            summarise(Amount = sum(Amount)/Area, .groups = "drop") %>% # zzz: Replace mean() with sum() and divide by area of grouping variables. 
+            summarise(Amount = sum(Amount) * cellArea * scaleFactor, .groups = "drop") %>% 
             mutate(
               Timestep = timestep,
               Iteration = iteration,
