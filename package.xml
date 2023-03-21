@@ -30,8 +30,10 @@
       <pipeline>
         <datafeed name="OutputSpatialHabitat" type="Input" />
         <datafeed name="OutputOptionsSpatial" type="Input" />
-        <datafeed name="OutputSpatialAverageHabitat" type="Output" />
+        <datafeed name="OutputSpatialHabitatAverage" type="Output" />
         <datafeed name="Species" type="Input" />
+        <datafeed name="OutputSpatialHabitatChange" type="Input" />
+        <datafeed name="OutputSpatialHabitatChangeAverage" type="Output" />
       </pipeline>
     </transformer>
     <transformer name="Primary" isPrimary="True" isPipelineBased="True">
@@ -146,11 +148,11 @@
             </datasheet>
           </datasheets>
         </datafeed>
-        <datafeed name="OutputSpatialAverageHabitat" displayName="Average Habitat" dataScope="Scenario">
+        <datafeed name="OutputSpatialHabitatAverage" displayName="Habitat Average" dataScope="Scenario">
           <datasheets>
-            <datasheet name="OutputSpatialAverageHabitat" displayName="Average Habitat">
+            <datasheet name="OutputSpatialHabitatAverage" displayName="Habitat Average">
               <columns>
-                <column name="OutputSpatialAverageHabitatID" dataType="Integer" isPrimary="True" />
+                <column name="OutputSpatialHabitatAverageID" dataType="Integer" isPrimary="True" />
                 <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
@@ -182,7 +184,22 @@
                 <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
+                <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
                 <column name="FileName" displayName="Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
+                <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
+              </columns>
+            </datasheet>
+          </datasheets>
+        </datafeed>
+        <datafeed name="OutputSpatialHabitatChangeAverage" displayName="Habitat Change Average" dataScope="Scenario">
+          <datasheets>
+            <datasheet name="OutputSpatialHabitatChangeAverage" displayName="Habitat Change Average">
+              <columns>
+                <column name="OutputSpatialHabitatChangeAverageID" dataType="Integer" isPrimary="True" />
+                <column name="ScenarioID" dataType="Integer" isCompositeIndex="True" />
+                <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
+                <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
+                <column name="FileName" displayName="Average Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
                 <column name="Species" displayName="Species" dataType="Integer" validationType="Datasheet" formula1="Species" />
                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
               </columns>
@@ -204,9 +221,10 @@
       <item name="OutputSpatialHabitat" showIf="inPipeline"/>
       <item name="OutputHabitatAmount" showIf="inPipeline"/>
       <item name="SiteValue" showIf="inPipeline"/>
-      <item name="OutputSpatialAverageHabitat" showIf="inPipeline"/>
+      <item name="OutputSpatialHabitatAverage" showIf="inPipeline"/>
       <item name="InvalidHabitat" showIf="inPipeline"/>
       <item name="OutputSpatialHabitatChange" showIf="inPipeline"/>
+      <item name="OutputSpatialHabitatChangeAverage" showIf="inPipeline"/>
     </layout>
     <layout name="coreforms_ResultTransformers">
       <item name="corestime_ChartTransformer" />
@@ -224,11 +242,14 @@
       <group name="SiteValue" displayName="Sites">
         <item name="SiteValue_FileName" displayName="Site Raster" dataSheet="SiteValue" column="FileName" />
       </group>
-      <group name="OutputSpatialAverageHabitat" displayName="Average Habitat">
-        <item name="OutputSpatialAverageHabitat_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialAverageHabitat" column="FileName" filter="Species"/>
+      <group name="OutputSpatialHabitatAverage" displayName="Habitat Average">
+        <item name="OutputSpatialHabitatAverage_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialHabitatAverage" column="FileName" filter="Species"/>
       </group>
       <group name="OutputSpatialHabitatChange" displayName="Habitat Change">
         <item name="OutputSpatialHabitatChange_FileName" displayName="Habitat Probability Change" dataSheet="OutputSpatialHabitatChange" column="FileName" filter="Species"/>
+      </group>
+      <group name="OutputSpatialHabitatChangeAverage" displayName="Habitat Change Average">
+        <item name="OutputSpatialHabitatChangeAverage_FileName" displayName="Average Habitat Probability Change" dataSheet="OutputSpatialHabitatChangeAverage" column="FileName" filter="Species"/>
       </group>
     </layout>
   </layouts>
