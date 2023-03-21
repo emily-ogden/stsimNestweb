@@ -22,7 +22,7 @@ lookup <- function(x, old, new){
 myScenario <- scenario()
 
 # Load relevant datasheets
-OutputOptionsSpatial <- datasheet(myScenario, "stsimNestweb_OutputOptionsSpatial")
+OutputOptions <- datasheet(myScenario, "stsimNestweb_OutputOptions")
 OutputSpatialHabitat <- datasheet(myScenario, "stsimNestweb_OutputSpatialHabitat")
 SpeciesID <- datasheet(myScenario, "stsimNestweb_Species", includeKey = TRUE) %>% 
   pull(SpeciesID, name = Name)
@@ -51,7 +51,7 @@ unlink(spatialOutputDir, recursive = TRUE, force = TRUE)
 dir.create(spatialOutputDir)
 
 # Main Code Here ----
-if(OutputOptionsSpatial$RasterOutputHAAverage) {
+if(OutputOptions$RasterOutputHAAverage) {
   progressBar(type = "message", message = "Running main code...")
   progressBar(type = "begin", totalSteps = length(timesteps) * length(species))
   
@@ -65,13 +65,15 @@ if(OutputOptionsSpatial$RasterOutputHAAverage) {
     
     # Repeat for habitat suitability change maps
     # NB: The first timestep is excluded because no change raster is calculated
-    if(timestep != min(timesteps)){
-      # Get all habitat suitability change maps for a given timestep
-      habitatSuitabilityChange <- datasheetRaster(
-        ssimObject = myScenario, 
-        datasheet = "stsimNestweb_OutputSpatialHabitatChange",
-        timestep = timestep) %>% 
-        rast()
+    if(OutputOptions$RasterOutputHACAverage) {
+      if(timestep != min(timesteps)){
+        # Get all habitat suitability change maps for a given timestep
+        habitatSuitabilityChange <- datasheetRaster(
+          ssimObject = myScenario, 
+          datasheet = "stsimNestweb_OutputSpatialHabitatChange",
+          timestep = timestep) %>% 
+          rast()
+      }
     }
     
     for(aSpecies in species){
@@ -91,21 +93,23 @@ if(OutputOptionsSpatial$RasterOutputHAAverage) {
                     NAflag = -9999)
       
       # Repeat for habitat suitability change
-      if(timestep != min(timesteps)){
-        # Determine output filename based on species and tiemstep
-        outputHabitatChangeFilename <- file.path(spatialOutputDir, str_c("hsca.sp", SpeciesID[aSpecies], ".ts", timestep, ".tif")) %>% 
-          normalizePath(mustWork = FALSE)
-        
-        # Subset layers by species
-        habitatChangeLayerNames <- names(habitatSuitabilityChange) %>% 
-          str_subset(str_c("sp", SpeciesID[aSpecies], "\\."))
-        
-        # Calculate spatial averages
-        habitatSuitabilityChange[[habitatChangeLayerNames]] %>% 
-          mean() %>% 
-          writeRaster(outputHabitatChangeFilename, 
-                      overwrite = TRUE,
-                      NAflag = -9999)
+      if(OutputOptions$RasterOutputHACAverage) {
+        if(timestep != min(timesteps)){
+          # Determine output filename based on species and tiemstep
+          outputHabitatChangeFilename <- file.path(spatialOutputDir, str_c("hsca.sp", SpeciesID[aSpecies], ".ts", timestep, ".tif")) %>% 
+            normalizePath(mustWork = FALSE)
+          
+          # Subset layers by species
+          habitatChangeLayerNames <- names(habitatSuitabilityChange) %>% 
+            str_subset(str_c("sp", SpeciesID[aSpecies], "\\."))
+          
+          # Calculate spatial averages
+          habitatSuitabilityChange[[habitatChangeLayerNames]] %>% 
+            mean() %>% 
+            writeRaster(outputHabitatChangeFilename, 
+                        overwrite = TRUE,
+                        NAflag = -9999)
+        }
       }
       
       # Increment 

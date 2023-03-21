@@ -45,7 +45,6 @@ SpeciesID <- datasheet(myScenario, "stsimNestweb_Species", includeKey = TRUE) %>
   pull(SpeciesID, name = Name)
 Site <- datasheet(myScenario, "stsimNestweb_SiteValue")
 OutputOptions <- datasheet(myScenario, "stsimNestweb_OutputOptions")
-OutputOptionsSpatial <- datasheet(myScenario, "stsimNestweb_OutputOptionsSpatial")
 HabitatModel <- datasheet(myScenario, "stsimNestweb_HabitatModel")
 InvalidHabitat <- datasheet(myScenario, "stsimNestweb_InvalidHabitat")
 OutputHabitatAmount <- data.frame()
@@ -61,8 +60,8 @@ timestepsTabular <- if(OutputOptions$SummaryOutputHA){
     unique()
 } else c()
 
-timestepsSpatial <- if(OutputOptionsSpatial$RasterOutputHA){
-  seq(RunControl$MinimumTimestep, RunControl$MaximumTimestep, by = OutputOptionsSpatial$RasterOutputHATimesteps) %>% 
+timestepsSpatial <- if(OutputOptions$RasterOutputHA){
+  seq(RunControl$MinimumTimestep, RunControl$MaximumTimestep, by = OutputOptions$RasterOutputHATimesteps) %>% 
     c(RunControl$MaximumTimestep) %>% 
     unique()
 } else c()
@@ -273,19 +272,21 @@ for(iteration in iterations){
                       NAflag = -9999)
         
         # Output habitat change raster
-        if(timestep != min(timestepsSpatial)){
-          outputFilename = file.path(spatialOutputDir, str_c("hsc.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
-            normalizePath(mustWork = FALSE)
-          
-          habitatData <- data.frame(
-            ts2016 = rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", min(timestepsSpatial), ".tif")))[] %>% as.vector(),
-            tsCurrent = rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")))[] %>% as.vector()) %>% 
-            mutate(difference = tsCurrent - ts2016)
-          
-          rast(templateRaster, vals = habitatData$difference) %>% 
-            writeRaster(outputFilename, 
-                        overwrite = TRUE,
-                        NAflag = -9999)
+        if(OutputOptions$RasterOutputHAC){
+          if(timestep != min(timestepsSpatial)){
+            outputFilename = file.path(spatialOutputDir, str_c("hsc.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")) %>% 
+              normalizePath(mustWork = FALSE)
+            
+            habitatData <- data.frame(
+              ts2016 = rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", min(timestepsSpatial), ".tif")))[] %>% as.vector(),
+              tsCurrent = rast(file.path(spatialOutputDir, str_c("hs.sp", SpeciesID[aSpecies], ".it", iteration, ".ts", timestep, ".tif")))[] %>% as.vector()) %>% 
+              mutate(difference = tsCurrent - ts2016)
+            
+            rast(templateRaster, vals = habitatData$difference) %>% 
+              writeRaster(outputFilename, 
+                          overwrite = TRUE,
+                          NAflag = -9999)
+          }
         }
       }
       
