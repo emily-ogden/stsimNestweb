@@ -10,12 +10,7 @@
 >         <datafeed name="stsimsf_StockType" type="Input" />
 >         <datafeed name="stsimsf_StockGroup" type="Input" />
 >         <datafeed name="stsimsf_StockGroupMembership" type="Input" />
-94c105,106
-<                 <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
----
->                 <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
->                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-122,124c134,137
+74,76c85,88
 <                 <column name="Iteration" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="1" format="d" isCompositeIndex="True" />
 <                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" />
 <                 <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
@@ -24,54 +19,73 @@
 >                 <column name="Timestep" dataType="Integer" validationType="WholeNumber" validationCondition="GreaterEqual" formula1="0" format="d" isCompositeIndex="True" isVisible="False"/>
 >                 <column name="FileName" displayName="Site Raster" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-138c151,152
-<                 <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
+137c149,150
+<                 <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
 ---
->                 <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
+>                 <column name="FileName" displayName="Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-165c179,180
+151c164,165
 <                 <column name="FileName" displayName="Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
 ---
 >                 <column name="FileName" displayName="Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
+>                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
+165c179,180
+<                 <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
+---
+>                 <column name="FileName" displayName="Average Habitat Probability" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
 179c194,195
 <                 <column name="FileName" displayName="Average Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" />
 ---
 >                 <column name="FileName" displayName="Average Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-193,201c209,217
+188,190c204,208
+<     <layout name="coreforms_ProjectDatafeeds" appendTo="stsim_Advanced">
+<       <item name="SiteType" />
+<       <item name="Species" />
+---
+>     <layout name="coreforms_ProjectDatafeeds" insertAfter="stsim_Advanced">
+>       <group name="stsimNestwebProject" displayName="ST-Sim Nestweb">
+>         <item name="SiteType" />
+>         <item name="Species" />
+>       </group>
+192,201c210,221
+<     <layout name="coreforms_ScenarioDatafeeds" appendTo="stsim_Advanced">
 <       <item name="HabitatModel" />
-<       <item name="OutputOptions" />
-<       <item name="OutputSpatialHabitat" />
-<       <item name="OutputHabitatAmount" />
 <       <item name="SiteValue" />
-<       <item name="OutputSpatialHabitatAverage" />
 <       <item name="InvalidHabitat" />
+<       <item name="OutputOptions" />
+<       <item name="OutputHabitatAmount" />
+<       <item name="OutputSpatialHabitat" />
 <       <item name="OutputSpatialHabitatChange" />
+<       <item name="OutputSpatialHabitatAverage" />
 <       <item name="OutputSpatialHabitatChangeAverage" />
 ---
->       <item name="HabitatModel" showIf="inPipeline"/>
->       <item name="OutputOptions" showIf="inPipeline"/>
->       <item name="OutputSpatialHabitat" showIf="inPipeline"/>
->       <item name="OutputHabitatAmount" showIf="inPipeline"/>
->       <item name="SiteValue" showIf="inPipeline"/>
->       <item name="OutputSpatialHabitatAverage" showIf="inPipeline"/>
->       <item name="InvalidHabitat" showIf="inPipeline"/>
->       <item name="OutputSpatialHabitatChange" showIf="inPipeline"/>
->       <item name="OutputSpatialHabitatChangeAverage" showIf="inPipeline"/>
-214c230
+>     <layout name="coreforms_ScenarioDatafeeds" insertAfter="stsim_Advanced">
+>       <group name="stsimNestwebScenario" displayName="ST-Sim Nestweb">
+>         <item name="HabitatModel" showIf="inPipeline"/>
+>         <item name="SiteValue" showIf="inPipeline"/>
+>         <item name="InvalidHabitat" showIf="inPipeline"/>
+>         <item name="OutputOptions" showIf="inPipeline"/>
+>         <item name="OutputHabitatAmount" showIf="inPipeline"/>
+>         <item name="OutputSpatialHabitat" showIf="inPipeline"/>
+>         <item name="OutputSpatialHabitatChange" showIf="inPipeline"/>
+>         <item name="OutputSpatialHabitatAverage" showIf="inPipeline"/>
+>         <item name="OutputSpatialHabitatChangeAverage" showIf="inPipeline"/>
+>       </group>
+217c237
 <         <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" />
 ---
 >         <item name="OutputSpatialHabitat_FileName" displayName="Habitat Probability" dataSheet="OutputSpatialHabitat" column="FileName" filter="Species"/>
-220c236
-<         <item name="OutputSpatialHabitatAverage_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialHabitatAverage" column="FileName" />
----
->         <item name="OutputSpatialHabitatAverage_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialHabitatAverage" column="FileName" filter="Species"/>
-223c239
+220c240
 <         <item name="OutputSpatialHabitatChange_FileName" displayName="Habitat Probability Change" dataSheet="OutputSpatialHabitatChange" column="FileName" />
 ---
 >         <item name="OutputSpatialHabitatChange_FileName" displayName="Habitat Probability Change" dataSheet="OutputSpatialHabitatChange" column="FileName" filter="Species"/>
-226c242
+223c243
+<         <item name="OutputSpatialHabitatAverage_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialHabitatAverage" column="FileName" />
+---
+>         <item name="OutputSpatialHabitatAverage_FileName" displayName="Average Habitat Probability" dataSheet="OutputSpatialHabitatAverage" column="FileName" filter="Species"/>
+226c246
 <         <item name="OutputSpatialHabitatChangeAverage_FileName" displayName="Average Habitat Probability Change" dataSheet="OutputSpatialHabitatChangeAverage" column="FileName" />
 ---
 >         <item name="OutputSpatialHabitatChangeAverage_FileName" displayName="Average Habitat Probability Change" dataSheet="OutputSpatialHabitatChangeAverage" column="FileName" filter="Species"/>
