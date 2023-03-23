@@ -39,18 +39,15 @@
 ---
 >                 <column name="FileName" displayName="Average Habitat Probability Change" dataType="String" isExternalFile="True" externalFileFilter="GeoTIFF Files (*.tif)|*.tif|All Files (*.*)|*.*" isRaster="True" bandColumn="Band" bandFilterColumn="Species"/>
 >                 <column name="Band" displayName="Band" dataType="Integer" allowDbNull="True" isOptional="True" isVisible="False"/>
-188,190c204,208
-<     <layout name="coreforms_ProjectDatafeeds" appendTo="stsim_Advanced">
+189,190c205,208
 <       <item name="SiteType" />
 <       <item name="Species" />
 ---
->     <layout name="coreforms_ProjectDatafeeds" insertAfter="stsim_Advanced">
 >       <group name="stsimNestwebProject" displayName="ST-Sim Nestweb">
 >         <item name="SiteType" />
 >         <item name="Species" />
->       </group>
-192,201c210,221
-<     <layout name="coreforms_ScenarioDatafeeds" appendTo="stsim_Advanced">
+>       </group>  
+193,201c211,221
 <       <item name="HabitatModel" />
 <       <item name="SiteValue" />
 <       <item name="InvalidHabitat" />
@@ -61,7 +58,6 @@
 <       <item name="OutputSpatialHabitatAverage" />
 <       <item name="OutputSpatialHabitatChangeAverage" />
 ---
->     <layout name="coreforms_ScenarioDatafeeds" insertAfter="stsim_Advanced">
 >       <group name="stsimNestwebScenario" displayName="ST-Sim Nestweb">
 >         <item name="HabitatModel" showIf="inPipeline"/>
 >         <item name="SiteValue" showIf="inPipeline"/>

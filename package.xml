@@ -109,13 +109,13 @@
               <columns>
                 <column name="OutputOptionsID" dataType="Integer" isPrimary="True" />
                 <column name="ScenarioID" dataType="Integer" />
-                <column name="SummaryOutputHA" displayName="Tabular data" dataType="Boolean" />
+                <column name="SummaryOutputHA" displayName="Tabular" dataType="Boolean" />
                 <column name="SummaryOutputHATimesteps" displayName="Tabular every" dataType="Integer" validationType="WholeNumber" validationCondition="None" />
-                <column name="RasterOutputHA" displayName="Spatial data" dataType="Boolean" />
+                <column name="RasterOutputHA" displayName="Spatial" dataType="Boolean" />
                 <column name="RasterOutputHATimesteps" displayName="Spatial every" dataType="Integer" validationType="WholeNumber" validationCondition="None" />
-                <column name="RasterOutputHAC" displayName="Spatial change data" dataType="Boolean" />
-                <column name="RasterOutputHAAverage" displayName="Spatial average data" dataType="Boolean" />
-                <column name="RasterOutputHACAverage" displayName="Spatial change average data" dataType="Boolean" />
+                <column name="RasterOutputHAC" displayName="Spatial change" dataType="Boolean" />
+                <column name="RasterOutputHAAverage" displayName="Spatial average" dataType="Boolean" />
+                <column name="RasterOutputHACAverage" displayName="Spatial change average" dataType="Boolean" />
               </columns>
             </datasheet>
           </datasheets>
@@ -205,19 +205,19 @@
       <group name="stsimNestwebProject" displayName="ST-Sim Nestweb">
         <item name="SiteType" />
         <item name="Species" />
-      </group>
+      </group>  
     </layout>
     <layout name="coreforms_ScenarioDatafeeds" insertAfter="stsim_Advanced">
       <group name="stsimNestwebScenario" displayName="ST-Sim Nestweb">
-        <item name="HabitatModel" />
-        <item name="SiteValue" />
-        <item name="InvalidHabitat" />
-        <item name="OutputOptions" />
-        <item name="OutputHabitatAmount" />
-        <item name="OutputSpatialHabitat" />
-        <item name="OutputSpatialHabitatChange" />
-        <item name="OutputSpatialHabitatAverage" />
-        <item name="OutputSpatialHabitatChangeAverage" />
+        <item name="HabitatModel" showIf="inPipeline"/>
+        <item name="SiteValue" showIf="inPipeline"/>
+        <item name="InvalidHabitat" showIf="inPipeline"/>
+        <item name="OutputOptions" showIf="inPipeline"/>
+        <item name="OutputHabitatAmount" showIf="inPipeline"/>
+        <item name="OutputSpatialHabitat" showIf="inPipeline"/>
+        <item name="OutputSpatialHabitatChange" showIf="inPipeline"/>
+        <item name="OutputSpatialHabitatAverage" showIf="inPipeline"/>
+        <item name="OutputSpatialHabitatChangeAverage" showIf="inPipeline"/>
       </group>
     </layout>
     <layout name="coreforms_ResultTransformers">
