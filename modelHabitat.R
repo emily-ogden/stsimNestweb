@@ -226,7 +226,7 @@ for(iteration in iterations){
       timestep = timestep) %>% 
       raster.invert(.)
     
-    edge=distance(forest,target=0)
+    edge <- distance(forest,target=0)
     
     #calculate distance to closest harvest edge
     harvest <-  datasheetRaster(
