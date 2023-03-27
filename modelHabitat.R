@@ -218,13 +218,34 @@ for(iteration in iterations){
       as.vector() %>% 
       {case_when(. <= 60 ~ "Y", TRUE ~ "N")}
     
+    #calculate nearest edge
+    forest <- datasheetRaster(
+      ssimObject = myScenario,
+      datasheet = "",
+      iteration = iteration,
+      timestep = timestep) %>% 
+      raster.invert(.)
+    
+    edge=distance(forest,target=0)
+    
+    #calculate distance to closest harvest edge
+    harvest <-  datasheetRaster(
+      ssimObject = myScenario,
+      datasheet = "stsim_OutputSpatialTST",
+      iteration = iteration,
+      timestep = timestep,
+      filterColumn = "TransitionGroupID",
+      filterValue = "Harvest [Type]")
+    
+    cut_dist <- distance(harvest,target=0)
+    
     # Create dataframe of habitat suitability model inputs
     habitatSuitabilityDf <- data.frame(Perc_At = aspenCover[], 
                                        Median_DBH = diameter[],
-                                       edge_near = 0,
+                                       edge_near = edge[],
                                        Num_2BI = 0,
                                        Mean_decay = 0,
-                                       dist_to_cut = 0,
+                                       dist_to_cut = cut_dist[],
                                        cut_harvest0 = cut, 
                                        Site = StrataData$Site)
     
